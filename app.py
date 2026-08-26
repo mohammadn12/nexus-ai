@@ -3,6 +3,10 @@ from flask import Flask, render_template, request, jsonify
 import database
 
 app = Flask(__name__)
+app.secret_key = 'super-secret-key-change-this-later' # <--- Yeh line aapko jodni hai
+
+# Iske baad aapka baaki ka purana code aur niche admin dashboard wala code rahega...
+
 
 # Initialize database schema and seed data
 with app.app_context():
