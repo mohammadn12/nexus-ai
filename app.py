@@ -1,122 +1,169 @@
 import os
-import sqlite3
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+import database
 
 app = Flask(__name__)
+# Flask session secure rakhne ke liye zaroori key
 app.secret_key = 'super-secret-key-change-this-later'
 
+# Secret Admin Login Credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "MySecretPassword123"
 
-def get_db_connection():
-    db_path = os.path.join(os.path.dirname(__file__), 'ai_tools.db')
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+# Initialize database schema and seed data
+with app.app_context():
+    database.init_db()
 
 @app.route('/')
 def index():
+    categories = database.get_all_categories()
+    featured_tools = database.get_tools(featured="1", sort_by="popular")
+    all_tools = database.get_tools(sort_by="popular")
+    stats = database.get_stats()
+    return render_template(
+        'index.html',
+        categories=categories,
+        featured_tools=featured_tools,
+        tools=all_tools,
+        stats=stats
+    )
+
+@app.route('/api/tools', methods=['GET'])
+def api_get_tools():
+    q = request.args.get('q', '').strip()
+    category = request.args.get('category', 'all').strip()
+    pricing = request.args.get('pricing', 'all').strip()
+    featured = request.args.get('featured')
+    sort_by = request.args.get('sort', 'popular').strip()
+
+    tools = database.get_tools(
+        query=q if q else None,
+        category_slug=category if category != 'all' else None,
+        pricing=pricing if pricing != 'all' else None,
+        featured=featured,
+        sort_by=sort_by
+    )
+    return jsonify({
+        'status': 'success',
+        'count': len(tools),
+        'tools': tools
+    })
+
+@app.route('/api/tools/<int:tool_id>', methods=['GET'])
+def api_get_tool(tool_id):
+    tool = database.get_tool_by_id(tool_id)
+    if not tool:
+        return jsonify({'status': 'error', 'message': 'Tool not found'}), 404
+    return jsonify({
+        'status': 'success',
+        'tool': tool
+    })
+
+@app.route('/api/categories', methods=['GET'])
+def api_get_categories():
+    categories = database.get_all_categories()
+    return jsonify({
+        'status': 'success',
+        'categories': categories
+    })
+
+@app.route('/api/tools/<int:tool_id>/upvote', methods=['POST'])
+def api_upvote_tool(tool_id):
+    new_count = database.upvote_tool(tool_id)
+    if new_count is None:
+        return jsonify({'status': 'error', 'message': 'Tool not found'}), 404
+    return jsonify({
+        'status': 'success',
+        'upvotes': new_count
+    })
+
+@app.route('/api/tools/submit', methods=['POST'])
+def api_submit_tool():
+    data = request.get_json()
+    if not data:
+        return jsonify({'status': 'error', 'message': 'Invalid JSON body'}), 400
+
+    required_fields = ['name', 'tagline', 'website_url', 'category_id']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'status': 'error', 'message': f'Field "{field}" is required'}), 420
+
     try:
-        conn = get_db_connection()
-        tools = conn.execute('SELECT * FROM tools').fetchall()
-        categories = conn.execute('SELECT * FROM categories').fetchall()
-        conn.close()
-    except Exception:
-        tools, categories = [], []
-    return render_template('index.html', tools=tools, categories=categories)
+        new_tool = database.submit_tool(data)
+        return jsonify({
+            'status': 'success',
+            'message': 'Tool submitted successfully!',
+            'tool': new_tool
+        }), 201
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/stats', methods=['GET'])
+def api_get_stats():
+    stats = database.get_stats()
+    return jsonify({
+        'status': 'success',
+        'stats': stats
+    })
+
+# --- ADMIN ROUTES ---
 
 @app.route('/secret-admin', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
-        if request.form.get('username') == ADMIN_USERNAME and request.form.get('password') == ADMIN_PASSWORD:
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
             session['admin_logged_in'] = True
             return redirect(url_for('admin_dashboard'))
         return "Galt Password! Dobara koshish karein."
     return '''
-        <div style="max-width:300px; margin:100px auto; padding:30px; border:1px solid #242736; background:#161820; text-align:center; font-family:sans-serif; border-radius:12px; color:#fff;">
-            <h2 style="color:#ff007f;">Admin Login</h2>
+        <div style="max-width:300px; margin:100px auto; padding:20px; border:1px solid #ccc; text-align:center; font-family:sans-serif;">
+            <h2>Admin Login</h2>
             <form method="POST">
-                <input type="text" name="username" placeholder="Username" required style="width:90%; margin-bottom:15px; padding:10px; background:#0d0e12; border:1px solid #242736; color:#fff; border-radius:6px;"><br>
-                <input type="password" name="password" placeholder="Password" required style="width:90%; margin-bottom:15px; padding:10px; background:#0d0e12; border:1px solid #242736; color:#fff; border-radius:6px;"><br>
-                <button type="submit" style="width:97%; padding:10px; background:#ff007f; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Sign In</button>
+                <input type="text" name="username" placeholder="Username" required style="width:100%; margin-bottom:10px; padding:8px;"><br>
+                <input type="password" name="password" placeholder="Password" required style="width:100%; margin-bottom:10px; padding:8px;"><br>
+                <button type="submit" style="width:100%; padding:10px; background:#ff007f; color:#fff; border:none; cursor:pointer;">Login</button>
             </form>
         </div>
     '''
 
-@app.route('/secret-admin/dashboard', methods=['GET', 'POST'])
+@app.route('/secret-admin/dashboard')
 def admin_dashboard():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     
-    conn = get_db_connection()
+    # Aapke database helper function ka sahi use
+    tools = database.get_tools()
     
-    if request.method == 'POST':
-        name = request.form.get('name')
-        tagline = request.form.get('tagline')
-        url = request.form.get('website_url')
-        pricing = request.form.get('pricing', 'Free')
-        
-        conn.execute('INSERT INTO tools (name, tagline, website_url, pricing) VALUES (?, ?, ?, ?)', 
-                     (name, tagline, url, pricing))
-        conn.commit()
-        return redirect(url_for('admin_dashboard'))
-
-    tools = conn.execute('SELECT * FROM tools').fetchall()
-    conn.close()
-    
-    html = f'''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>NexusAI Admin</title>
-        <style>
-            body {{ font-family: sans-serif; background: #0d0e12; color: #fff; padding: 20px; }}
-            .container {{ max-width: 800px; margin: 0 auto; }}
-            input, select {{ width: 100%; padding: 10px; margin-bottom: 10px; background: #161820; border: 1px solid #242736; color: #fff; border-radius: 6px; }}
-            button {{ background: #ff007f; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }}
-            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-            th, td {{ padding: 12px; border-bottom: 1px solid #242736; text-align: left; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h2>🔮 NexusAI Premium Admin Panel</h2>
-            <form method="POST" style="background: #161820; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h3>➕ Add New Tool</h3>
-                <input type="text" name="name" placeholder="Tool Name" required>
-                <input type="text" name="tagline" placeholder="Tagline" required>
-                <input type="url" name="website_url" placeholder="Website URL" required>
-                <select name="pricing">
-                    <option value="Free">Free</option>
-                    <option value="Freemium">Freemium</option>
-                    <option value="Paid">Paid</option>
-                </select>
-                <button type="submit">Add Tool Live</button>
-            </form>
-            
-            <h3>📋 Live Tools List</h3>
-            <table>
-                <tr><th>Name</th><th>Pricing</th><th>Action</th></tr>
+    html = '''
+    <div style="padding:20px; font-family:sans-serif; max-width:800px; margin:0 auto;">
+        <h2>NexusAI Admin Dashboard</h2>
+        <p><a href="/secret-admin/logout" style="color:red;">Logout</a></p>
+        <table border="1" cellpadding="10" style="width:100%; border-collapse:collapse;">
+            <tr><th>Tool Name</th><th>Category</th><th>Action</th></tr>
     '''
     for tool in tools:
-        html += f'''
-                <tr>
-                    <td>{tool['name']}</td>
-                    <td>{tool['pricing']}</td>
-                    <td><a href="/secret-admin/delete/{tool['id']}" style="color: #ff4d4d; text-decoration: none;">Delete</a></td>
-                </tr>
-        '''
-    html += '</table></div></body></html>'
+        html += f"<tr><td>{tool['name']}</td><td>{tool['category_name']}</td><td><a href='/secret-admin/delete/{tool['id']}' style='color:red;'>Delete</a></td></tr>"
+    html += '</table></div>'
     return html
 
 @app.route('/secret-admin/delete/<int:id>')
 def delete_tool(id):
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
-    conn = get_db_connection()
-    conn.execute('DELETE FROM tools WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
+    
+    # Agar delete function database file me nahi hai, toh safe deletion execute karein
+    try:
+        import sqlite3
+        db_path = os.path.join(os.path.dirname(__file__), 'ai_tools.db')
+        conn = sqlite3.connect(db_path)
+        conn.execute('DELETE FROM tools WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return f"Error deleting tool: {str(e)}"
+        
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/secret-admin/logout')
@@ -124,6 +171,7 @@ def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('index'))
 
+# Server startup code hamesha end me hona chahiye
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
