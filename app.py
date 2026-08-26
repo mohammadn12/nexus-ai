@@ -104,3 +104,63 @@ if __name__ == '__main__':
     # Run development server
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+# Secret Admin Login Credentials
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "MySecretPassword123" # <--- Ise aap badal sakte hain
+
+@app.route('/secret-admin', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session['admin_logged_in'] = True
+            return redirect(url_for('admin_dashboard'))
+        return "Galt Password! Dobara koshish karein."
+    return '''
+        <div style="max-width:300px; margin:100px auto; padding:20px; border:1px solid #ccc; text-align:center; font-family:sans-serif;">
+            <h2>Admin Login</h2>
+            <form method="POST">
+                <input type="text" name="username" placeholder="Username" required style="width:100%; margin-bottom:10px; padding:8px;"><br>
+                <input type="password" name="password" placeholder="Password" required style="width:100%; margin-bottom:10px; padding:8px;"><br>
+                <button type="submit" style="width:100%; padding:10px; background:#ff007f; color:#fff; border:none; cursor:pointer;">Login</button>
+            </form>
+        </div>
+    '''
+
+@app.route('/secret-admin/dashboard')
+def admin_dashboard():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db_connection()
+    tools = conn.execute('SELECT * FROM tools').fetchall()
+    conn.close()
+    
+    # Simple Dashboard to see and delete tools
+    html = '''
+    <div style="padding:20px; font-family:sans-serif; max-width:800px; margin:0 auto;">
+        <h2>NexusAI Admin Dashboard</h2>
+        <p><a href="/secret-admin/logout" style="color:red;">Logout</a></p>
+        <table border="1" cellpadding="10" style="width:100%; border-collapse:collapse;">
+            <tr><th>Tool Name</th><th>Category</th><th>Action</th></tr>
+    '''
+    for tool in tools:
+        html += f"<tr><td>{tool['name']}</td><td>{tool['category']}</td><td><a href='/secret-admin/delete/{tool['id']}' style='color:red;'>Delete</a></td></tr>"
+    html += '</table></div>'
+    return html
+
+@app.route('/secret-admin/delete/<int:id>')
+def delete_tool(id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    conn = get_db_connection()
+    conn.execute('DELETE FROM tools WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/secret-admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('index'))
