@@ -1,12 +1,14 @@
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import database
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-change-this-later' # <--- Yeh line aapko jodni hai
+# Flask session secure rakhne ke liye zaroori key
+app.secret_key = 'super-secret-key-change-this-later'
 
-# Iske baad aapka baaki ka purana code aur niche admin dashboard wala code rahega...
-
+# Secret Admin Login Credentials
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "MySecretPassword123"
 
 # Initialize database schema and seed data
 with app.app_context():
@@ -104,13 +106,7 @@ def api_get_stats():
         'stats': stats
     })
 
-if __name__ == '__main__':
-    # Run development server
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
-# Secret Admin Login Credentials
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "MySecretPassword123" # <--- Ise aap badal sakte hain
+# --- ADMIN ROUTES ---
 
 @app.route('/secret-admin', methods=['GET', 'POST'])
 def admin_login():
@@ -137,11 +133,9 @@ def admin_dashboard():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     
-    conn = get_db_connection()
-    tools = conn.execute('SELECT * FROM tools').fetchall()
-    conn.close()
+    # Aapke database helper function ka sahi use
+    tools = database.get_tools()
     
-    # Simple Dashboard to see and delete tools
     html = '''
     <div style="padding:20px; font-family:sans-serif; max-width:800px; margin:0 auto;">
         <h2>NexusAI Admin Dashboard</h2>
@@ -150,7 +144,7 @@ def admin_dashboard():
             <tr><th>Tool Name</th><th>Category</th><th>Action</th></tr>
     '''
     for tool in tools:
-        html += f"<tr><td>{tool['name']}</td><td>{tool['category']}</td><td><a href='/secret-admin/delete/{tool['id']}' style='color:red;'>Delete</a></td></tr>"
+        html += f"<tr><td>{tool['name']}</td><td>{tool['category_name']}</td><td><a href='/secret-admin/delete/{tool['id']}' style='color:red;'>Delete</a></td></tr>"
     html += '</table></div>'
     return html
 
@@ -158,13 +152,26 @@ def admin_dashboard():
 def delete_tool(id):
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
-    conn = get_db_connection()
-    conn.execute('DELETE FROM tools WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
+    
+    # Agar delete function database file me nahi hai, toh safe deletion execute karein
+    try:
+        import sqlite3
+        db_path = os.path.join(os.path.dirname(__file__), 'ai_tools.db')
+        conn = sqlite3.connect(db_path)
+        conn.execute('DELETE FROM tools WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return f"Error deleting tool: {str(e)}"
+        
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/secret-admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('index'))
+
+# Server startup code hamesha end me hona chahiye
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
