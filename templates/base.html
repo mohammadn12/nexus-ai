@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}NexusAI - Modern AI Tools Directory & Discovery Platform{% endblock %}</title>
+  <meta name="description" content="Discover, compare, and bookmark 25+ top curated artificial intelligence tools, LLMs, coding assistants, image generators, and productivity software.">
+  <meta name="keywords" content="AI tools, artificial intelligence, directory, ChatGPT, Claude, Midjourney, Cursor, AI software, machine learning">
+  <meta name="author" content="NexusAI">
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- Ambient Gradient Glow Orbs -->
+  <div class="bg-glow-1"></div>
+  <div class="bg-glow-2"></div>
+  <div class="bg-glow-3"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="/" class="brand-logo" id="brand-logo">
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        </div>
+        <div class="brand-text">Nexus<span>AI</span></div>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link active" id="nav-link-explore">Explore</a></li>
+          <li><a href="#categories-bar" class="nav-link" id="nav-link-categories">Categories</a></li>
+          <li>
+            <a href="#tools-grid-section" class="nav-link" id="nav-link-bookmarks">
+              Saved <span class="nav-badge" id="fav-count-nav">0</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark / Light Theme" aria-label="Toggle theme">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
+
+        <a href="#submit" class="btn-submit-tool" id="btn-open-submit">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Submit Tool</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Block -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Global Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand-logo">
+            <div class="logo-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <div class="brand-text">Nexus<span>AI</span></div>
+          </a>
+          <p>The definitive curated directory for cutting-edge AI tools, models, and developer infrastructure.</p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Categories</h4>
+          <ul class="footer-links">
+            <li><a href="#categories-bar" class="footer-link">Coding & Dev</a></li>
+            <li><a href="#categories-bar" class="footer-link">Text & Writing</a></li>
+            <li><a href="#categories-bar" class="footer-link">Image & Art</a></li>
+            <li><a href="#categories-bar" class="footer-link">Video & Motion</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Directory</h4>
+          <ul class="footer-links">
+            <li><a href="#tools-grid-section" class="footer-link">Featured Tools</a></li>
+            <li><a href="#tools-grid-section" class="footer-link">Top Rated</a></li>
+            <li><a href="#tools-grid-section" class="footer-link">Free Tools</a></li>
+            <li><a href="#submit" class="footer-link" onclick="document.getElementById('btn-open-submit').click(); return false;">Submit an AI Tool</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul class="footer-links">
+            <li><span class="footer-link" style="color: var(--text-muted);">Python 3 + Flask</span></li>
+            <li><span class="footer-link" style="color: var(--text-muted);">SQLite Relational Engine</span></li>
+            <li><span class="footer-link" style="color: var(--text-muted);">Vanilla JS & CSS3</span></li>
+            <li><span class="footer-link" style="color: #10b981;">● Status: 100% Operational</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 NexusAI Directory. All rights reserved.</div>
+        <div>Engineered with precision for modern AI enthusiasts and developers.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

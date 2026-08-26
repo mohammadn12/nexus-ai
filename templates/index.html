@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7-6.3-4.6-6.3 4.6 2.3-7-6-4.6h7.6z"/>
+      </svg>
+      <span>25+ Top AI Tools Curated & Verified</span>
+    </div>
+
+    <h1 class="hero-title">
+      Explore the Next Frontier of <br>
+      <span class="gradient-text">Artificial Intelligence</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      Discover, compare, and bookmark the world's most capable AI models, coding assistants, generative media studios, and autonomous agents.
+    </p>
+
+    <!-- Interactive Hero Search Bar -->
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <span class="search-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </span>
+        <input 
+          type="text" 
+          id="search-input" 
+          class="search-input" 
+          placeholder="Search AI tools by name, features, or keywords (e.g., Cursor, Video, Voice, GPT)..."
+          autocomplete="off"
+          spellcheck="false"
+        >
+        <button id="search-clear-btn" class="search-clear-btn" title="Clear search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <span class="search-shortcut" title="Press '/' anywhere to search">/</span>
+      </div>
+    </div>
+
+    <!-- Live Metrics Counter Bar -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-value highlight">{{ stats.total_tools }}</span>
+        <span class="stat-label">Total Tools</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.total_categories }}</span>
+        <span class="stat-label">Categories</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.free_tools }}</span>
+        <span class="stat-label">Free / Freemium</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-value">{{ stats.total_upvotes }}</span>
+        <span class="stat-label">Community Votes</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Category Filter Pills Bar -->
+<section class="categories-section" id="categories-bar">
+  <div class="container">
+    <div class="categories-wrapper">
+      <button class="category-pill active" data-category="all">
+        <span class="cat-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </span>
+        <span>All Categories</span>
+        <span class="cat-count">{{ stats.total_tools }}</span>
+      </button>
+
+      {% for cat in categories %}
+      <button class="category-pill" data-category="{{ cat.slug }}">
+        <span class="category-dot" style="background: {{ cat.color }};"></span>
+        <span>{{ cat.name }}</span>
+        <span class="cat-count">{{ cat.tool_count }}</span>
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Main Toolbar & Tool Grid Section -->
+<section class="container" id="tools-grid-section">
+  <div class="toolbar-section">
+    <div class="toolbar-left">
+      <div class="tab-group">
+        <button class="tab-btn active" data-tab="all" id="tab-all">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>All Tools</span>
+        </button>
+        <button class="tab-btn" data-tab="featured" id="tab-featured">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span>Featured</span>
+        </button>
+        <button class="tab-btn" data-tab="bookmarks" id="tab-bookmarks">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Saved (<span id="fav-count-tab">0</span>)</span>
+        </button>
+      </div>
+
+      <span class="results-count" id="results-count">
+        Showing <strong>{{ stats.total_tools }}</strong> AI tools
+      </span>
+    </div>
+
+    <div class="toolbar-right">
+      <!-- Pricing Filter -->
+      <div class="filter-select-wrapper">
+        <select id="pricing-filter" class="filter-select" aria-label="Filter by pricing">
+          <option value="all">Pricing: All Models</option>
+          <option value="Free">Free</option>
+          <option value="Freemium">Freemium</option>
+          <option value="Paid">Paid</option>
+          <option value="Free Trial">Free Trial</option>
+        </select>
+        <span class="filter-select-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
+      </div>
+
+      <!-- Sorting Filter -->
+      <div class="filter-select-wrapper">
+        <select id="sort-filter" class="filter-select" aria-label="Sort tools">
+          <option value="popular">Sort: Most Popular</option>
+          <option value="rating">Sort: Highest Rated</option>
+          <option value="newest">Sort: Newest Added</option>
+          <option value="name">Sort: Alphabetical (A-Z)</option>
+        </select>
+        <span class="filter-select-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Tool Cards Grid -->
+  <div class="tools-grid" id="tools-grid">
+    <!-- Rendered via JavaScript for high responsiveness -->
+  </div>
+</section>
+
+<!-- ==========================================
+     Tool Detail Modal
+     ========================================== -->
+<div class="modal-overlay" id="detail-modal-overlay">
+  <div class="modal-container">
+    <button class="modal-close-btn" id="detail-modal-close" aria-label="Close modal">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <div id="detail-modal-content">
+      <!-- Injected dynamically via modal.js -->
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     Submit Tool Modal Form
+     ========================================== -->
+<div class="modal-overlay" id="submit-modal-overlay">
+  <div class="modal-container">
+    <button class="modal-close-btn" id="submit-modal-close" aria-label="Close modal">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="submit-header">
+      <h2 class="submit-title">Submit an AI Tool</h2>
+      <p class="submit-subtitle">Add your product or favorite AI software to the NexusAI directory.</p>
+    </div>
+
+    <form id="submit-tool-form" class="submit-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="submit-name">Tool Name <span class="req">*</span></label>
+          <input type="text" id="submit-name" class="form-input" placeholder="e.g., Cursor, Flux.1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="submit-url">Website URL <span class="req">*</span></label>
+          <input type="url" id="submit-url" class="form-input" placeholder="https://example.com" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="submit-category">Category <span class="req">*</span></label>
+          <select id="submit-category" class="form-select" required>
+            <option value="" disabled selected>Select category...</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="submit-pricing">Pricing Model <span class="req">*</span></label>
+          <select id="submit-pricing" class="form-select" required>
+            <option value="Freemium" selected>Freemium</option>
+            <option value="Free">Free</option>
+            <option value="Free Trial">Free Trial</option>
+            <option value="Paid">Paid</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="submit-tagline">Short Catchphrase / Tagline <span class="req">*</span></label>
+        <input type="text" id="submit-tagline" class="form-input" placeholder="e.g., The AI code editor built for hyper-productive engineers" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="submit-description">Detailed Description</label>
+        <textarea id="submit-description" class="form-textarea" placeholder="Explain what the AI tool does, core use-cases, and value proposition..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="submit-features">Key Capabilities (One per line)</label>
+        <textarea id="submit-features" class="form-textarea" placeholder="AI autocompletion&#10;Full-codebase semantic search&#10;Multi-file editing"></textarea>
+        <span class="form-help">Enter bullet point features separated by line breaks.</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="submit-tags">Tags (Comma separated)</label>
+          <input type="text" id="submit-tags" class="form-input" placeholder="e.g., IDE, Code Gen, React">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="submit-logo">Logo Image URL (Optional)</label>
+          <input type="url" id="submit-logo" class="form-input" placeholder="https://example.com/logo.png">
+        </div>
+      </div>
+
+      <button type="submit" id="btn-submit-form-action" class="form-submit-btn">
+        <span>Submit AI Tool</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
