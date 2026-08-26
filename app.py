@@ -1,10 +1,9 @@
 import os
-import sqlite3
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 import database
 
 app = Flask(__name__)
-# Flask session secure rakhne ke liye zaroori key
+# Secure Flask Session key
 app.secret_key = 'super-secret-key-change-this-later'
 
 # Global Admin Settings
@@ -83,7 +82,7 @@ def api_get_stats():
     return jsonify({'status': 'success', 'stats': stats})
 
 
-# --- 🔮 MASTER CONTROL ROOM ROUTES ---
+# --- 🔮 CLEAN SAFE ADMIN PORTAL ROUTES ---
 
 @app.route('/secret-admin', methods=['GET', 'POST'])
 def admin_login():
@@ -132,6 +131,7 @@ def admin_dashboard():
             return f"Error adding tool: {str(e)}"
         return redirect(url_for('admin_dashboard'))
 
+    # database file ke standard safe read functions ka use
     tools = database.get_tools()
     categories = database.get_all_categories()
     
@@ -145,7 +145,7 @@ def admin_dashboard():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>NexusAI - Super Admin Portal</title>
+        <title>NexusAI - Admin Portal</title>
         <style>
             body {{ font-family: 'Segoe UI', sans-serif; background-color: #0d0e12; color: #e4e6eb; margin: 0; padding: 0; }}
             .navbar {{ background-color: #161820; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242736; }}
@@ -171,13 +171,8 @@ def admin_dashboard():
             .action-btn {{ text-decoration: none; padding: 4px 8px; border-radius: 6px; font-size: 12px; transition: 0.2s; margin-left: 2px; display: inline-block; font-weight: bold; }}
             .delete-btn {{ color: #ff4d4d; background: rgba(255, 77, 77, 0.1); }}
             .delete-btn:hover {{ background: #ff4d4d; color: #fff; }}
-            .feature-btn {{ color: #ffaa00; background: rgba(255, 170, 0, 0.1); }}
-            .feature-btn:hover {{ background: #ffaa00; color: #fff; }}
             .normal-btn {{ color: #00ffaa; background: rgba(0, 255, 170, 0.1); }}
             .normal-btn:hover {{ background: #00ffaa; color: #000; }}
-            .boost-btn {{ color: #a066ff; background: rgba(160, 102, 255, 0.1); border: 1px solid #a066ff; }}
-            .boost-btn:hover {{ background: #a066ff; color: #fff; }}
-            .danger-zone {{ border: 1px dashed #ff4d4d; padding: 15px; border-radius: 8px; background: rgba(255, 77, 77, 0.05); margin-top: 20px; }}
         </style>
         <script>
             function filterTools() {{
@@ -189,3 +184,16 @@ def admin_dashboard():
                     else {{ row.style.display = "none"; }}
                 }});
             }}
+        </script>
+    </head>
+    <body>
+        <div class="navbar">
+            <h2>🔮 NexusAI Admin Portal</h2>
+            <div>
+                <a href="/" target="_blank" class="action-btn normal-btn" style="padding: 8px 16px;">Live Website 🌐</a>
+                <a href="/secret-admin/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+        
+        <div class="analytics-grid">
+            <div class="stats-card">
