@@ -133,7 +133,6 @@ def admin_dashboard():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     
-    # Form submission handler using native database submit function
     if request.method == 'POST':
         form_data = {
             'name': request.form.get('name'),
@@ -150,12 +149,12 @@ def admin_dashboard():
             return f"Error adding tool: {str(e)}"
         return redirect(url_for('admin_dashboard'))
 
-    # Native connection mapping to avoid lock threads
     tools = database.get_tools()
     categories = database.get_all_categories()
     total_tools = len(tools)
     
-    html = f'''
+    # HTML template completely without problematic f-string brackets conflict
+    html = '''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -163,27 +162,28 @@ def admin_dashboard():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>NexusAI - Premium Control Room</title>
         <style>
-            body {{ font-family: 'Segoe UI', sans-serif; background-color: #0d0e12; color: #e4e6eb; margin: 0; padding: 0; }}
-            .navbar {{ background-color: #161820; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242736; }}
-            .navbar h2 {{ margin: 0; color: #ff007f; font-size: 22px; }}
-            .logout-btn {{ color: #ff4d4d; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #ff4d4d; border-radius: 6px; transition: 0.3s; }}
-            .logout-btn:hover {{ background: #ff4d4d; color: #fff; }}
-            .container {{ max-width: 1100px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }}
-            .panel-card {{ background-color: #161820; border-radius: 12px; border: 1px solid #242736; padding: 25px; }}
-            .panel-card h3 {{ margin-top: 0; color: #fff; border-bottom: 1px solid #242736; padding-bottom: 10px; }}
-            .stats-card {{ background: linear-gradient(135deg, #1f1a3a, #161820); padding: 15px; border-radius: 10px; border: 1px solid #32255c; margin-bottom: 20px; text-align: center; }}
-            .stats-card p {{ margin: 5px 0 0 0; font-size: 36px; font-weight: bold; color: #00ffff; }}
-            .form-group {{ margin-bottom: 15px; }}
-            .form-group label {{ display: block; margin-bottom: 5px; font-size: 14px; color: #9aa0a6; }}
-            .form-control {{ width: 93%; padding: 10px; background: #0d0e12; border: 1px solid #242736; color: #fff; border-radius: 6px; }}
-            .submit-btn {{ width: 100%; padding: 12px; background: #ff007f; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }}
-            table {{ width: 100%; border-collapse: collapse; text-align: left; }}
-            th, td {{ padding: 12px 15px; border-bottom: 1px solid #242736; }}
-            th {{ background-color: #1f2230; color: #9aa0a6; font-size: 13px; text-transform: uppercase; }}
-            tr:hover {{ background-color: #1c1f2e; }}
-            .tag {{ background-color: #242736; padding: 4px 10px; border-radius: 20px; font-size: 11px; color: #00ffff; }}
-            .delete-btn {{ color: #ff4d4d; text-decoration: none; background: rgba(255, 77, 77, 0.1); padding: 5px 10px; border-radius: 6px; font-size: 13px; transition: 0.2s; }}
-            .delete-btn:hover {{ background: #ff4d4d; color: #fff; }}
+            body { font-family: 'Segoe UI', sans-serif; background-color: #0d0e12; color: #e4e6eb; margin: 0; padding: 0; }
+            .navbar { background-color: #161820; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #242736; }
+            .navbar h2 { margin: 0; color: #ff007f; font-size: 22px; }
+            .logout-btn { color: #ff4d4d; text-decoration: none; font-weight: bold; padding: 8px 16px; border: 1px solid #ff4d4d; border-radius: 6px; transition: 0.3s; }
+            .logout-btn:hover { background: #ff4d4d; color: #fff; }
+            .container { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+            .panel-card { background-color: #161820; border-radius: 12px; border: 1px solid #242736; padding: 25px; }
+            .panel-card h3 { margin-top: 0; color: #fff; border-bottom: 1px solid #242736; padding-bottom: 10px; }
+            .stats-card { background: linear-gradient(135deg, #1f1a3a, #161820); padding: 15px; border-radius: 10px; border: 1px solid #32255c; margin-bottom: 20px; text-align: center; }
+            .stats-card p { margin: 5px 0 0 0; font-size: 36px; font-weight: bold; color: #00ffff; }
+            .form-group { margin-bottom: 15px; }
+            .form-group label { display: block; margin-bottom: 5px; font-size: 14px; color: #9aa0a6; }
+            .form-control { width: 93%; padding: 10px; background: #0d0e12; border: 1px solid #242736; color: #fff; border-radius: 6px; }
+            .submit-btn { width: 100%; padding: 12px; background: #ff007f; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+            .submit-btn:hover { background: #e0006c; }
+            table { width: 100%; border-collapse: collapse; text-align: left; }
+            th, td { padding: 12px 15px; border-bottom: 1px solid #242736; }
+            th { background-color: #1f2230; color: #9aa0a6; font-size: 13px; text-transform: uppercase; }
+            tr:hover { background-color: #1c1f2e; }
+            .tag { background-color: #242736; padding: 4px 10px; border-radius: 20px; font-size: 11px; color: #00ffff; }
+            .delete-btn { color: #ff4d4d; text-decoration: none; background: rgba(255, 77, 77, 0.1); padding: 5px 10px; border-radius: 6px; font-size: 13px; transition: 0.2s; }
+            .delete-btn:hover { background: #ff4d4d; color: #fff; }
         </style>
     </head>
     <body>
@@ -198,7 +198,7 @@ def admin_dashboard():
             <div>
                 <div class="stats-card">
                     <span style="color:#9aa0a6; font-size:13px; text-transform:uppercase;">Total Listed Tools</span>
-                    <p>{total_tools}</p>
+                    <p>''' + str(total_tools) + '''</p>
                 </div>
                 <div class="panel-card">
                     <h3>➕ Add New AI Tool</h3>
