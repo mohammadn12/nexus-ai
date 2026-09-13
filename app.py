@@ -5,21 +5,17 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import database
 
 app = Flask(__name__)
-# Flask session secure rakhne ke liye zaroori key
 app.secret_key = 'super-secret-key-change-this-later'
 
-# Secret Admin Login Credentials
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "MySecretPassword123"
 
-# --- ULTIMATE 75+ GLOBAL AI DIRECTORY SEEDER ---
 def seed_ultimate_free_tools():
     try:
         db_path = os.path.join(os.path.dirname(__file__), 'ai_tools.db')
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        # Core operational categories mapping
         categories = [
             (1, "Text & Writing", "text-writing"),
             (2, "Image & Art", "image-art"),
@@ -32,7 +28,6 @@ def seed_ultimate_free_tools():
         for cat in categories:
             cursor.execute('INSERT OR IGNORE INTO categories (id, name, slug) VALUES (?, ?, ?)', cat)
 
-        # Dataset containing Global Famous AI Tools
         tools = [
             ("ChatGPT", "The world's most popular conversational AI by OpenAI", "https://chatgpt.com", 1, "Freemium", "1", 2100),
             ("Claude AI", "State-of-the-art intelligence for analysis and writing by Anthropic", "https://claude.ai", 1, "Freemium", "1", 1850),
@@ -56,17 +51,8 @@ def seed_ultimate_free_tools():
             ("Spline AI", "An interactive engine generating functional browser assets via inputs", "https://spline.design", 7, "Freemium", "1", 1260)
         ]
 
-        for tool in tools:
-            try:
-                cursor.execute('''
-                    INSERT OR IGNORE INTO tools (name, tagline, website_url, category_id, pricing, featured, upvotes)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', tool)
-            except Exception:
-                cursor.execute('''
-                    INSERT OR IGNORE INTO tools (name, tagline, website_url, category_id)
-                    VALUES (?, ?, ?, ?)
-                ''', (tool[0], tool[1], tool[2], tool[3]))
+        for t in tools:
+            cursor.execute('INSERT OR IGNORE INTO tools (name, tagline, website_url, category_id, pricing, featured, upvotes) VALUES (?, ?, ?, ?, ?, ?, ?)', t)
 
         conn.commit()
         conn.close()
@@ -74,7 +60,6 @@ def seed_ultimate_free_tools():
     except Exception as e:
         print(f"Seeding failed: {e}")
 
-# Initialize database schema and inject the tools dataset
 with app.app_context():
     database.init_db()
     seed_ultimate_free_tools()
@@ -171,8 +156,6 @@ def api_get_stats():
         'stats': stats
     })
 
-# --- ADMIN ROUTES ---
-
 @app.route('/secret-admin', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
@@ -199,7 +182,6 @@ def admin_dashboard():
         return redirect(url_for('admin_login'))
     
     tools = database.get_tools()
-    
     html = '''
     <div style="padding:20px; font-family:sans-serif; max-width:800px; margin:0 auto;">
         <h2>NexusAI Admin Dashboard</h2>
@@ -216,5 +198,21 @@ def admin_dashboard():
 def delete_tool(id):
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
-    
     try:
+        db_path = os.path.join(os.path.dirname(__file__), 'ai_tools.db')
+        conn = sqlite3.connect(db_path)
+        conn.execute('DELETE FROM tools WHERE id = ?', (id,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return f"Error deleting tool: {str(e)}"
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/secret-admin/logout')
+def admin_logout():
+    session.pop('admin_logged_in', None)
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
