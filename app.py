@@ -41,7 +41,7 @@ def seed_ultimate_free_tools():
             ("DeepL", "Gold-standard AI translation across multiple languages", "https://deepl.com", 1, "Freemium", "0", 280),
             ("DeepSeek R1", "Open-source reasoning model rivaling top proprietary chat layers", "https://deepseek.com", 1, "Free", "1", 1950),
             ("DuckDuckGo AI Chat", "100% Anonymous and secure open-source model chat", "https://duckduckgo.com", 1, "Free", "0", 350),
-            ("Gemini AI", "Google's powerful multimodal assistant with massive context limits", "https://google.com", 1, "Freemium", "1", 1720),
+            ("Gemini AI", "Google's powerful multimodal assistant with massive context limits", "https://gemini.google.com", 1, "Freemium", "1", 1720),
             ("Grok 4", "Real-time search and information parsing built by xAI with X integration", "https://grok.com", 1, "Paid", "0", 1210),
             ("Grammarly AI", "Deeply embedded writing assistant correcting complex context structures", "https://grammarly.com", 1, "Freemium", "0", 810),
             ("HuggingChat", "The open-source community alternative to commercial LLMs", "https://huggingface.co", 1, "Free", "1", 420),
@@ -100,4 +100,3 @@ def seed_ultimate_free_tools():
             ("Suno v3.5", "Synthesize full musical compositions with rich instrumental and vocal tracks", "https://suno.com", 4, "Freemium", "1", 1410),
             ("TTSMP3", "Zero-signup voice rendering utility exporting direct into raw MP3 format", "https://ttsmp3.com", 4, "Free", "0", 145),
             ("Udio", "Professional audio generation architecture producing structured songs", "https://udio.com", 4, "Freemium", "1", 1120),
- .
